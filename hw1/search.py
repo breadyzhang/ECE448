@@ -18,8 +18,12 @@ files and classes when code is run, so be careful to not modify anything else.
 # maze is a Maze object based on the maze from the file specified by input filename
 # searchMethod is the search method specified by --method flag (bfs,dfs,astar,astar_multi,fast)
 
-
 def bfs(maze):
+    # queue [] for points to visit in maze
+    # point []:
+        # point[0] = parent tuple
+        # point[1] = current coord
+        # start point[2:] = -1,-1
     """
     Runs BFS for part 1 of the assignment.
 
@@ -27,9 +31,37 @@ def bfs(maze):
 
     @return path: a list of tuples containing the coordinates of each state in the computed path
     """
-    return []
+    out = []
+    queue = []
+    parents = {}
+    visited = {}
+    start = (maze.start[0], maze.start[1])
+    parents[start] = (-1, -1)
+    queue.append(start)
+    i = 0
+    print("start: ", start, " end: ", maze.waypoints[0])
+    while(queue[i] != maze.waypoints[0]):
+        #print("current point: ", queue[i])
+        visited[queue[i]] = 1
+        for n in maze.neighbors(queue[i][0], queue[i][1]):
+            # if n in visited:
+            #     print("already visited")
+            if n not in visited:
+                #print("parent: ", queue[i], "child: ", n)
+                parents[n] = queue[i]
+                queue.append(n)
+                visited[n] = 1
+        i = i + 1
+    print("reached end")
+    curr = queue[i]
+    while(curr != (-1,-1)):
+        #print(curr)
+        out.insert(0, curr)
+        curr = parents[curr]
+    return out
 
 def astar_single(maze):
+    # heapq
     """
     Runs A star for part 2 of the assignment.
 
@@ -69,5 +101,3 @@ def fast(maze):
     @return path: a list of tuples containing the coordinates of each state in the computed path
     """
     return []
-    
-            
