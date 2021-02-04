@@ -17,6 +17,7 @@ files and classes when code is run, so be careful to not modify anything else.
 # to the positions of the path taken by your search algorithm.
 # maze is a Maze object based on the maze from the file specified by input filename
 # searchMethod is the search method specified by --method flag (bfs,dfs,astar,astar_multi,fast)
+import heapq
 
 def bfs(maze):
     # queue [] for points to visit in maze
@@ -39,7 +40,7 @@ def bfs(maze):
     parents[start] = (-1, -1)
     queue.append(start)
     i = 0
-    print("start: ", start, " end: ", maze.waypoints[0])
+    #print("start: ", start, " end: ", maze.waypoints[0])
     while(queue[i] != maze.waypoints[0]):
         #print("current point: ", queue[i])
         visited[queue[i]] = 1
@@ -52,7 +53,7 @@ def bfs(maze):
                 queue.append(n)
                 visited[n] = 1
         i = i + 1
-    print("reached end")
+    #print("reached end")
     curr = queue[i]
     while(curr != (-1,-1)):
         #print(curr)
@@ -69,7 +70,32 @@ def astar_single(maze):
 
     @return path: a list of tuples containing the coordinates of each state in the computed path
     """
-    return []
+    # heapq: (distance, coords)
+    out = []
+    queue = []
+    heapq.heapify(queue)
+    parents = {}
+    visited = {}
+    goal = (maze.waypoints[0][0], maze.waypoints[0][1])
+    start = (maze.start[0], maze.start[1])
+    parents[start] = (-1,-1)
+    curr = start
+    visited[start] = 1
+    while(curr != maze.waypoints[0]):
+        #print("curr: ", curr)
+        for n in maze.neighbors(curr[0], curr[1]):
+            if n not in visited:
+                #print("neighbor: ", n)
+                parents[n] = curr
+                distance = abs(goal[0]-n[0]) + abs(goal[1]-n[1]) + visited[curr]
+                #print(distance)
+                heapq.heappush(queue, (distance, n))
+                visited[n] = 1 + visited[curr]
+        curr = heapq.heappop(queue)[1]
+    while(curr != (-1,-1)):
+        out.insert(0,curr)
+        curr = parents[curr]
+    return out
 
 def astar_corner(maze):
     """
