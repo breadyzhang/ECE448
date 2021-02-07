@@ -81,7 +81,7 @@ def astar_single(maze):
     parents[start] = (-1,-1)
     curr = start
     visited[start] = 1
-    while(curr != maze.waypoints[0]):
+    while curr not in maze.waypoints:
         #print("curr: ", curr)
         for n in maze.neighbors(curr[0], curr[1]):
             if n not in visited:
@@ -104,8 +104,52 @@ def astar_corner(maze):
     @param maze: The maze to execute the search on.
 
     @return path: a list of tuples containing the coordinates of each state in the computed path
-        """
-    return []
+    """
+    out = []
+    queue = [] # queue: distances to waypoints, [waypoints not yet hit], current location
+    parents = {} # current location, (points not yet hit) : parent location, cost from start
+    visited = {} # current location, (points not yet hit) : heuristic (manhattan distance from all remaining waypoints + path)
+    heapq.heapify(queue)
+    start = ((maze.start[0], maze.start[1]), (1,1,1,1))
+    curr = start
+    #print(curr)
+    visited[start] = 0
+    parents[start] = ((-1,-1), 0)
+    while curr[1] != (0,0,0,0):
+        # updates tuple of waypoints hit, set to 0
+        if curr[0] in maze.waypoints:
+            #print("found")
+            index = maze.waypoints.index(curr[0])
+            waypoints = list(curr[1])
+            waypoints[index] = 0
+            checkpoint = (curr[0], tuple(waypoints))
+            #print(checkpoint)
+            parents[checkpoint] = parents[curr]
+            curr = checkpoint
+        for n in maze.neighbors(curr[0][0],curr[0][1]):
+            node = (n, curr[1])
+            # calculate heuristic: manhattan distance to remaining waypoints + cost to get to current location
+            cost = parents[curr][1]+1
+            if node not in parents or cost < parents[node][1]:
+                parents[node] = (curr, cost)
+                for i in range(len(maze.waypoints)):
+                    cost = cost + (abs(n[0]-maze.waypoints[i][0]) + abs(n[1]-maze.waypoints[i][1]))*curr[1][i]
+                heapq.heappush(queue, (cost, node))
+        #print(queue)
+        curr = heapq.heappop(queue)[1]
+
+    # insert path into output
+    #print("adding to path", curr)
+    while curr != start:
+        parent = parents[curr]
+        out.insert(0, curr[0])
+        curr = parent[0]
+        # print(curr)
+        # print("Path: ", out)
+    out.insert(0, maze.start)
+    del out[-1]
+    print(out)
+    return out
 
 def astar_multiple(maze):
     """
@@ -116,6 +160,19 @@ def astar_multiple(maze):
 
     @return path: a list of tuples containing the coordinates of each state in the computed path
     """
+    distances = []
+    for i in range(len(maze.waypoints)-1):
+        for j in range(i+1, len(maze.waypoints)):
+            distance = abs(maze.waypoints[i][0] - maze.waypoints[j][0]) + abs(maze.waypoints[i][1]-maze.waypoints[j][1])
+            distances.append((distance, (maze.waypoints[i], maze.waypoints[j])))
+    distances.sort()
+    checked = []
+    next = {}
+    for i in distances:
+        if i[1][0] not in checked or i[1][1] not in checked:
+            checked.append(i[1][0])
+            checked.append(i[1][1])
+            next[i[1][0]] = i[1][1]
     return []
 
 def fast(maze):
