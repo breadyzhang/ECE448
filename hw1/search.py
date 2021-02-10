@@ -190,17 +190,15 @@ def astar_multiple(maze):
     # time to start searching
     while len(queue) > 0 and curr[1] != endgame:
         curr = heapq.heappop(queue)[1]
-        #print(curr, curr[1])
-        # current location matches an undiscovered waypoint
-        if curr[0] in maze.waypoints:# and curr[1][maze.waypoints.index(curr[0])] == 0:
-            #print("found ", curr[0])
+        if curr[0] in maze.waypoints:
             index = maze.waypoints.index(curr[0])
             waypoints = list(curr[1])
             waypoints[index] = 1
             checkpoint = (curr[0], tuple(waypoints))
-            #print(waypoints)
             parents[checkpoint] = parents[curr]
             curr = checkpoint
+        if curr[1] == endgame:
+            break
         for n in maze.neighbors(curr[0][0], curr[0][1]):
             node = (n, curr[1])
             path_cost = parents[curr][1] + 1
@@ -210,39 +208,30 @@ def astar_multiple(maze):
                 cost = 0
                 remaining = list(curr[1])
                 mst = []
+                heapq.heapify(mst)
                 for i in range(len(curr[1])):
                     if curr[1][i] == 0:
                         distance = abs(n[0]-maze.waypoints[i][0]) + abs(n[1]-maze.waypoints[i][1])
-                        mst.append((distance,(maze.waypoints[i][0], maze.waypoints[i][1])))
-                mst.sort()
-                #print(node,mst)
-                temp = 0 if len(mst) == 0 else mst[0][0]
+                        heapq.heappush(mst,((distance,(maze.waypoints[i][0], maze.waypoints[i][1]))))
+                temp = mst[0][0]
                 if curr[1] in prev_mst:
-                    cost = cost + temp + prev_mst[curr[1]]
+                    cost = temp + prev_mst[curr[1]]
                 else:
                     while tuple(remaining) != endgame:
-                        mst.sort()
                         index = maze.waypoints.index(mst[0][1])
                         if remaining[index] == 0:
-                            # if curr[0] == (1,15):
-                            #     print("index: ", index)
-                            #     print(mst[0][1])
-                            #     print("map: ",waypoint_cost[mst[0][1]])
-                            #     print("mst ", mst)
                             cost = cost + mst[0][0]-1
-                            mst.insert(0, waypoint_cost[mst[0][1]])
+                            for i in waypoint_cost[mst[0][1]]:
+                                heapq.heappush(mst,i)
                             remaining[index] = 1
                         del mst[0]
                     prev_mst[curr[1]] = cost - temp
                 heuristic[node] = cost
                 cost = cost + parents[node][1]
                 heapq.heappush(queue, (cost, node))
-
-            # elif path_cost < parents[node][1]:
-            #     print("boo")
-            #     old_cost = parents[node][1]
-            #     parents[node] = curr,path_cost
-            #     heapq.heappush(queue, (heuristic[node] +parents[node][1], node))
+            elif path_cost < parents[node][1]:
+                parents[node] = curr,path_cost
+                heapq.heappush(queue, (parents[node][1], node))
         #print(queue[0])
     #print("Done")
     #print(prev_mst)
