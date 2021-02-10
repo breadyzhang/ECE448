@@ -148,7 +148,7 @@ def astar_corner(maze):
         # print("Path: ", out)
     out.insert(0, maze.start)
     del out[-1]
-    print(out)
+    #print(out)
     return out
 
 def astar_multiple(maze):
@@ -160,20 +160,95 @@ def astar_multiple(maze):
 
     @return path: a list of tuples containing the coordinates of each state in the computed path
     """
-    distances = []
-    for i in range(len(maze.waypoints)-1):
+    out = [] # path outputted
+    queue = [] # prio queue based off g(n) + h(n) and contains location and waypoints hit
+    heapq.heapify(queue)
+    heuristic = {} # dictionary of prim's algo with manhattan distance, (x,y),(waypoints) : lowest manhattan distance cost to all remaining waypoints
+    parents = {} # (x,y),(waypoints remaining) : ((parent x,y),(waypoints reamining), pathcost)
+    waypoint_cost = {} # dictionary containing cost from one waypoint to the other waypoints (x,y),(x,y) : manhattan distance cost
+    waypoints = [] #
+    endgame = []
+    prev_mst = {} # remaining tuples as input: mst heuristic cost
+    # init lists in dict of waypoint_cost
+    for w in maze.waypoints:
+        waypoint_cost[w] = []
+        waypoints.append(0)
+        endgame.append(1)
+    # calculating manhattan distances between waypoints
+    for i in range(0, len(maze.waypoints)-1):
         for j in range(i+1, len(maze.waypoints)):
-            distance = abs(maze.waypoints[i][0] - maze.waypoints[j][0]) + abs(maze.waypoints[i][1]-maze.waypoints[j][1])
-            distances.append((distance, (maze.waypoints[i], maze.waypoints[j])))
-    distances.sort()
-    checked = []
-    next = {}
-    for i in distances:
-        if i[1][0] not in checked or i[1][1] not in checked:
-            checked.append(i[1][0])
-            checked.append(i[1][1])
-            next[i[1][0]] = i[1][1]
-    return []
+            distance = abs(maze.waypoints[i][0] - maze.waypoints[j][0]) + abs(maze.waypoints[i][1] - maze.waypoints[j][1])
+            waypoint_cost[maze.waypoints[i]].append((distance, maze.waypoints[j]))
+            waypoint_cost[maze.waypoints[j]].append((distance, maze.waypoints[i]))
+    waypoints = tuple(waypoints) #(0,0,...,0)
+    endgame = tuple(endgame) # (1,1,...,1)
+    # init start state
+    start = (maze.start, waypoints)
+    parents[start] = ((-1,-1), waypoints), 0
+    heapq.heappush(queue, (0, start))
+    curr = start
+    # time to start searching
+    while len(queue) > 0 and curr[1] != endgame:
+        curr = heapq.heappop(queue)[1]
+        #print(curr, curr[1])
+        # current location matches an undiscovered waypoint
+        if curr[0] in maze.waypoints:# and curr[1][maze.waypoints.index(curr[0])] == 0:
+            #print("found")
+            index = maze.waypoints.index(curr[0])
+            waypoints = list(curr[1])
+            waypoints[index] = 1
+            checkpoint = (curr[0], tuple(waypoints))
+            #print(checkpoint)
+            parents[checkpoint] = parents[curr]
+            curr = checkpoint
+        for n in maze.neighbors(curr[0][0], curr[0][1]):
+            node = (n, curr[1])
+            path_cost = parents[curr][1] + 1
+            if node not in parents:
+                parents[node] = curr,path_cost
+                # calculate prim's
+                cost = 0
+                remaining = []
+                mst = []
+                for i in range(len(curr[1])):
+                    if i == 0:
+                        distance = abs(n[0]-maze.waypoints[i][0]) + abs(n[1]-maze.waypoints[i][1])
+                        mst.append((distance,(maze.waypoints[i][0], maze.waypoints[i][1])))
+                        remaining.append(0)
+                    else:
+                        remaining.append(1)
+                og = tuple(remaining)
+                temp = mst[0][0]
+                if og in prev_mst:
+                    cost = cost + mst[0][0] + prev_mst[og]
+                else:
+                    while tuple(remaining) != endgame:
+                        mst.sort()
+                        index = maze.waypoints.index(mst[0][1])
+                        if remaining[index] == 0:
+                            cost = cost + mst[0][0]
+                            mst.insert(0, waypoint_cost[mst[0][1]])
+                            remaining[index] = 1
+                            del mst[0]
+                        else:
+                            del mst[0]
+                    prev_mst[og] = cost - temp
+                cost = cost + parents[node][1]
+                heapq.heappush(queue, (cost, node))
+                heuristic[node] = cost
+            elif path_cost < parents[node][1]:
+                old_cost = parents[node][1]
+                heuristic[node] = heuristic[node] - old_cost + path_cost
+                parents[node] = curr,path_cost
+                heapq.heappush(queue, (heuristic[node], node))
+    #print("Done")
+    while curr != start:
+        #print(curr)
+        out.insert(0, curr[0]
+        parent = parents[curr][0]
+        curr = parent
+    out.insert(0, maze.start)
+    return out
 
 def fast(maze):
     """
