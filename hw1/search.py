@@ -193,12 +193,12 @@ def astar_multiple(maze):
         #print(curr, curr[1])
         # current location matches an undiscovered waypoint
         if curr[0] in maze.waypoints:# and curr[1][maze.waypoints.index(curr[0])] == 0:
-            #print("found")
+            #print("found ", curr[0])
             index = maze.waypoints.index(curr[0])
             waypoints = list(curr[1])
             waypoints[index] = 1
             checkpoint = (curr[0], tuple(waypoints))
-            #print(checkpoint)
+            #print(waypoints)
             parents[checkpoint] = parents[curr]
             curr = checkpoint
         for n in maze.neighbors(curr[0][0], curr[0][1]):
@@ -208,46 +208,51 @@ def astar_multiple(maze):
                 parents[node] = curr,path_cost
                 # calculate prim's
                 cost = 0
-                remaining = []
+                remaining = list(curr[1])
                 mst = []
                 for i in range(len(curr[1])):
-                    if i == 0:
+                    if curr[1][i] == 0:
                         distance = abs(n[0]-maze.waypoints[i][0]) + abs(n[1]-maze.waypoints[i][1])
                         mst.append((distance,(maze.waypoints[i][0], maze.waypoints[i][1])))
-                        remaining.append(0)
-                    else:
-                        remaining.append(1)
-                og = tuple(remaining)
-                temp = mst[0][0]
-                if og in prev_mst:
-                    cost = cost + mst[0][0] + prev_mst[og]
+                mst.sort()
+                #print(node,mst)
+                temp = 0 if len(mst) == 0 else mst[0][0]
+                if curr[1] in prev_mst:
+                    cost = cost + temp + prev_mst[curr[1]]
                 else:
                     while tuple(remaining) != endgame:
                         mst.sort()
                         index = maze.waypoints.index(mst[0][1])
                         if remaining[index] == 0:
-                            cost = cost + mst[0][0]
+                            # if curr[0] == (1,15):
+                            #     print("index: ", index)
+                            #     print(mst[0][1])
+                            #     print("map: ",waypoint_cost[mst[0][1]])
+                            #     print("mst ", mst)
+                            cost = cost + mst[0][0]-1
                             mst.insert(0, waypoint_cost[mst[0][1]])
                             remaining[index] = 1
-                            del mst[0]
-                        else:
-                            del mst[0]
-                    prev_mst[og] = cost - temp
+                        del mst[0]
+                    prev_mst[curr[1]] = cost - temp
+                heuristic[node] = cost
                 cost = cost + parents[node][1]
                 heapq.heappush(queue, (cost, node))
-                heuristic[node] = cost
-            elif path_cost < parents[node][1]:
-                old_cost = parents[node][1]
-                heuristic[node] = heuristic[node] - old_cost + path_cost
-                parents[node] = curr,path_cost
-                heapq.heappush(queue, (heuristic[node], node))
+
+            # elif path_cost < parents[node][1]:
+            #     print("boo")
+            #     old_cost = parents[node][1]
+            #     parents[node] = curr,path_cost
+            #     heapq.heappush(queue, (heuristic[node] +parents[node][1], node))
+        #print(queue[0])
     #print("Done")
+    #print(prev_mst)
     while curr != start:
         #print(curr)
-        out.insert(0, curr[0]
+        out.insert(0, curr[0])
         parent = parents[curr][0]
         curr = parent
     out.insert(0, maze.start)
+    print(out)
     return out
 
 def fast(maze):
