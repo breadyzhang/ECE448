@@ -41,6 +41,8 @@ def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter, pos_prior)
     out = []
     total_words = 0
     total_emails = len(train_set)
+    prev_spam = math.log(1-pos_prior)
+    prev_ham = math.log(pos_prior)
     # go through each email in the training set
     for s in range(len(train_set)):
         # go thorugh each word in the training set
@@ -58,20 +60,16 @@ def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter, pos_prior)
         ham_emails = ham_emails+1 if train_labels[s] == 1 else ham_emails
     # time for dev set
     for email in dev_set:
-        is_spam = math.log(spam_emails/total_emails)
-        not_spam = math.log(ham_emails/total_emails)
+        is_spam = prev_spam
+        not_spam = prev_ham
         for word in email:
             # calculate likelihood of spam
-            count = (spam[word] + smoothing_parameter) / (spam_words + smoothing_parameter*2)
+            count = (spam[word] + smoothing_parameter) / (total_words + smoothing_parameter*spam_words)
             is_spam = is_spam + math.log(count)
             # calculate likelihood of ham
-            count = (ham[word] + smoothing_parameter) / (spam_words+smoothing_parameter*2)
+            count = (ham[word] + smoothing_parameter) / (total_words+smoothing_parameter*ham_words)
             not_spam = not_spam + math.log(count)
-        # including pos_prior
-        not_spam = not_spam + math.log(pos_prior)
-        is_spam = is_spam + math.log(1-pos_prior)
         if is_spam > not_spam:
-            # email is spam
             for word in email:
                 spam[word] = spam[word] + 1
                 spam_words = spam_words + 1
