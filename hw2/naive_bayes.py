@@ -38,7 +38,6 @@ def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter, pos_prior)
     spam_words = 0
     ham_words = 0
     out = []
-    total_words = 0
     total_emails = len(train_set)
     prev_spam = math.log(1-pos_prior)
     prev_ham = math.log(pos_prior)
@@ -54,8 +53,6 @@ def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter, pos_prior)
                 spam[word] = spam[word] + 1
                 spam_words = spam_words + 1
             words[word] = 1
-        # keep track of number of words total and number of spamemails / hamemails
-        total_words = total_words+len(train_set[s])
     # time for dev set
     for email in dev_set:
         is_spam = prev_spam
