@@ -15,7 +15,7 @@ files and classes when code is run, so be careful to not modify anything else.
 """
 
 import numpy as np
-
+# test
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -38,7 +38,7 @@ class NeuralNet(nn.Module):
         For Part 1 the network should have the following architecture (in terms of hidden units):
 
         in_size -> 32 ->  out_size
-        
+
         We recommend setting lrate to 0.01 for part 1.
 
         """
@@ -52,7 +52,7 @@ class NeuralNet(nn.Module):
         @param params: a list of tensors containing all parameters of the network
         """
         raise NotImplementedError("You need to write this part!")
-    
+
     def get_parameters(self):
         """ Gets the parameters of your network.
 
