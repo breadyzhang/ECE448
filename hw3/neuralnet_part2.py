@@ -38,18 +38,26 @@ class NeuralNet(nn.Module):
         self.loss_fn = loss_fn
         # Tanh(), ELU(), Softplus(), LeakyReLU()
         self.model = nn.Sequential(
-            nn.Conv2d(3,16,3),
-            nn.BatchNorm2d(16),
+            nn.Conv2d(3,6,5),
             nn.ELU(),
-            nn.MaxPool2d(4),
-            nn.Conv2d(16,1,3),
-            nn.BatchNorm2d(1),
+            nn.MaxPool2d(2,2),
+            nn.Conv2d(6,16,5),
             nn.ELU(),
-            nn.MaxPool2d(4),
-            nn.Linear(1,16),
-            nn.ELU(),
-            nn.Linear(16,out_size)
+            nn.MaxPool2d(2,2)
         )
+        self.linear = nn.Sequential(nn.Linear(16*5*5,2))
+            # nn.Conv2d(3,16,3),
+            # nn.BatchNorm2d(16),
+            # nn.ELU(),
+            # nn.MaxPool2d(4),
+            # nn.Conv2d(16,1,3),
+            # nn.BatchNorm2d(1),
+            # nn.ELU(),
+            # nn.MaxPool2d(4),
+            # nn.Linear(1,16),
+            # nn.ELU(),
+            # nn.Linear(16,out_size)
+        # )
         self.optimizer = torch.optim.RMSprop(self.model.parameters(),lr=lrate,weight_decay=0.001)
 
 
@@ -63,8 +71,10 @@ class NeuralNet(nn.Module):
         # x = drop(x)
         x = torch.reshape(x,(x.shape[0],3,32,32))
         x = self.model(x)
-        #print(x.shape)
-        x = torch.reshape(x,(x.shape[0],2))
+        # print(x.shape)
+        x = torch.reshape(x,(x.shape[0],400))
+        x = self.linear(x)
+        # print(x.shape)
         return x
 
     def step(self, x,y):
