@@ -126,8 +126,8 @@ def fit(train_set,train_labels,dev_set,n_iter,batch_size=100):
     for iterations in range(n_iter):
         i = np.random.choice(train_set.shape[0], size=batch_size,replace=False)
         loss = net.step(train_set[i], train_labels[i])
-        if iterations % 50 == 0:
-            print(loss)
+        # if iterations % 50 == 0:
+        #     print(loss)
         losses.append(loss)
 
     # development
