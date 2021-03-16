@@ -98,7 +98,7 @@ class NeuralNet(nn.Module):
         return loss.item()
 
 
-def fit(train_set,train_labels,dev_set,n_iter,lrate,batch_size=100):
+def fit(train_set,train_labels,dev_set,n_iter,batch_size=100):
     """ Make NeuralNet object 'net' and use net.step() to train a neural net
     and net(x) to evaluate the neural net.
 
@@ -116,7 +116,7 @@ def fit(train_set,train_labels,dev_set,n_iter,lrate,batch_size=100):
     @return net: a NeuralNet object
     """
     #raise NotImplementedError("You need to write this part!")
-    net = NeuralNet(lrate, nn.CrossEntropyLoss(), 3072, 2) #.0047
+    net = NeuralNet(0.0001, nn.CrossEntropyLoss(), 3072, 2) #.0047
     losses = []
     yhats = []
     # training
