@@ -36,7 +36,21 @@ class NeuralNet(nn.Module):
         """
         super(NeuralNet, self).__init__()
         self.loss_fn = loss_fn
-        raise NotImplementedError("You need to write this part!")
+        # Tanh(), ELU(), Softplus(), LeakyReLU()
+        self.model = nn.Sequential(
+            nn.Conv2d(3,16,3),
+            nn.BatchNorm2d(16),
+            nn.ELU(),
+            nn.MaxPool2d(4),
+            nn.Conv2d(16,1,3),
+            nn.BatchNorm2d(1),
+            nn.ELU(),
+            nn.MaxPool2d(4),
+            nn.Linear(1,16),
+            nn.ELU(),
+            nn.Linear(16,out_size)
+        )
+        self.optimizer = torch.optim.RMSprop(self.model.parameters(),lr=lrate,weight_decay=0.001)
 
 
     def forward(self, x):
@@ -45,8 +59,13 @@ class NeuralNet(nn.Module):
         @param x: an (N, in_size) Tensor
         @return y: an (N, out_size) Tensor of output from the network
         """
-        raise NotImplementedError("You need to write this part!")
-        return torch.ones(x.shape[0], 1)
+        # drop = nn.Dropout(p=0.2)
+        # x = drop(x)
+        x = torch.reshape(x,(x.shape[0],3,32,32))
+        x = self.model(x)
+        #print(x.shape)
+        x = torch.reshape(x,(x.shape[0],2))
+        return x
 
     def step(self, x,y):
         """
@@ -56,8 +75,12 @@ class NeuralNet(nn.Module):
         @param y: an (N,) Tensor
         @return L: total empirical risk (mean of losses) at this timestep as a float
         """
-        raise NotImplementedError("You need to write this part!")
-        return 0.0
+        yhat = self.forward(x)
+        loss = self.loss_fn(yhat,y)
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+        return loss.item()
 
 def fit(train_set,train_labels,dev_set,n_iter,batch_size=100):
     """ Make NeuralNet object 'net' and use net.step() to train a neural net
@@ -79,5 +102,25 @@ def fit(train_set,train_labels,dev_set,n_iter,batch_size=100):
     @return yhats: an (M,) NumPy array of binary labels for dev_set
     @return net: a NeuralNet object
     """
-    raise NotImplementedError("You need to write this part!")
-    return [],[],None
+    net = NeuralNet(0.001,nn.CrossEntropyLoss(),3072,2)
+    losses = []
+    yhats = []
+    # normalizing
+    train_mean = torch.mean(train_set)
+    train_std = torch.std(train_set)
+    train_set = (train_set-train_mean)/train_std
+    dev_mean = torch.mean(dev_set)
+    dev_std = torch.std(dev_set)
+    dev_set = (dev_set-dev_mean)/dev_std
+
+    # training
+    for iterations in range(n_iter):
+        i = np.random.choice(train_set.shape[0], size=batch_size,replace=False)
+        loss = net.step(train_set[i], train_labels[i])
+        losses.append(loss)
+    # dev
+    guess = net.forward(dev_set)
+    for yhat in guess:
+        # yhat = 0 if guess[0] > guess[1] else 1
+        yhats.append(0 if yhat[0] > yhat[1] else 1)
+    return losses, yhats, net
