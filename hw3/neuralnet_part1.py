@@ -52,7 +52,6 @@ class NeuralNet(nn.Module):
             torch.nn.Linear(32, out_size)
         )
         self.optimizer = torch.optim.RMSprop(self.model.parameters(), lr=lrate)
-        self.losses = []
         #raise NotImplementedError("You need to write this part!")
 
     def set_parameters(self, params):
