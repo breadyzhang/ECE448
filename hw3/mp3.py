@@ -53,7 +53,7 @@ def main(args):
     train_labels = torch.tensor(train_labels, dtype=torch.int64)
     dev_set = torch.tensor(dev_set, dtype=torch.float32)
 
-    _, predicted_labels, net = p.fit(train_set, train_labels, dev_set, args.max_iter)
+    _, predicted_labels, net = p.fit(train_set, train_labels, dev_set, args.max_iter, args.lrate)
     accuracy, f1, precision, recall = compute_accuracies(predicted_labels, dev_set, dev_labels)
 
     print("Accuracy:", accuracy)
@@ -74,6 +74,7 @@ if __name__ == "__main__":
                         help='Part 1 or Part 2')
     parser.add_argument('--seed', dest="seed", type=int, default=42,
                         help='seed source for randomness')
+    parser.add_argument('--lrate', dest="lrate", type=float, default=0.00452, help='set lrate')
 
 
     args = parser.parse_args()
