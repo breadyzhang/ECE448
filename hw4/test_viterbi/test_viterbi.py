@@ -11,7 +11,7 @@
 # Modified Spring 2021 by Kiran Ramnath (kiranr2@illinois.edu)
 
 """
-This file should not be submitted - it is only meant to test your implementation of the Viterbi algorithm. 
+This file should not be submitted - it is only meant to test your implementation of the Viterbi algorithm.
 """
 from utils import read_files, get_nested_dictionaries
 import math
@@ -22,8 +22,33 @@ def main():
     emission, transition = get_nested_dictionaries(emission, transition)
     initial = transition["S"]
     prediction = []
-    
+
     """WRITE YOUR VITERBI IMPLEMENTATION HERE"""
+    print("emission: ",emission)
+    print()
+    print("transition: ",transition)
+    print()
+    for message in test:
+        for i in range(len(message)):
+            word = message[i]
+            tag = ""
+            prob = 0
+            if word == message[0]:
+                for key in initial:
+                    if prob < initial[key]:
+                        prob = initial[key]
+                        tag = key
+            else:
+                prev = transition[prediction[-1][1]]
+                # print(prev)
+                for key in prev:
+                    print(key)
+                    print(prev[key])
+                    print(emission[key])
+                    if prob < prev[key] * emission[key][word]:
+                        prob = prev[key] * emission[key][word]
+                        tag = key
+            prediction.append((word,tag))
 
     print('Your Output is:',prediction,'\n Expected Output is:',output)
 
