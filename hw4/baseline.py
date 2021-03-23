@@ -23,7 +23,10 @@ def baseline(train, test):
     out = []
     words = {} # (freq of tag, tag)
     word_tag = {}
-    tags = Counter()
+    tags = []
+    tags_counter = Counter()
+    most_common = ""
+    tag_value = 0
     # tags = {} # (freq of word, word)
     # training
     for message in train:
@@ -36,12 +39,17 @@ def baseline(train, test):
                 word_tag[(word[0],word[1])] = 1
             else:
                 word_tag[(word[0],word[1])] += 1
-            tags[word[1]] += 1
+            tags_counter[word[1]] += 1
+            if word[1] not in tags:
+                tags.append(word[1])
         # if word[1] not in tags:
         #     tags[word[1]] = (1, word[0])
         # else:
         #     tags[word[1]] = (tags[word[1]][0] + 1, word[0])
-
+    for tag in tags:
+        if tags_counter[tag] > tag_value:
+            tag_value = tags_counter[tag]
+            most_common = tag
     # testing
     for message in test:
         message_out = []
@@ -49,12 +57,12 @@ def baseline(train, test):
             best_tag = ""
             value = 0
             if word in words:
-                for tag in words[word]:
-                    if word_tag[(word,tag)] > value:
+                for tag in tags:
+                    if (word,tag) in word_tag and word_tag[(word,tag)] > value:
                         value = word_tag[(word,tag)]
                         best_tag = tag
             else:
-                best_tag = max(tags)
+                best_tag = most_common
             message_out.append((word,best_tag))
         out.append(message_out)
     return out
