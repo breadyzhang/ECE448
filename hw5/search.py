@@ -14,7 +14,7 @@ def generateMoves(side, board, flags):
         for to in chess.lib.availableMoves(side, board, piece, flags):
             promote = chess.lib.getPromote(None, side, board, fro, to, single=True)
             yield [fro, to, promote]
-            
+
 ###########################################################################################
 # Example of a move-generating function:
 # Randomly choose a move.
@@ -56,7 +56,51 @@ def minimax(side, board, flags, depth):
       flags (list of flags): list of flags, used by generateMoves and makeMove
       depth (int >=0): depth of the search (number of moves)
     '''
-    raise NotImplementedError("you need to write this!")
+    value = math.inf if side == True else -math.inf
+    moveList = []
+    moveTree = {}
+    bestMove = []
+    # create minimax tree move:(next move, heuristic)
+    # bubble up from leaves
+    # base case
+    if depth == 1:
+        # find all possible moves at board state
+        for move in generateMoves(side,board,flags):
+            moveTree[encode(move[0],move[1],move[2])] = {}
+            newside,newboard,newflags = makeMove(side,board,move[0],move[1],flags,move[2])
+            # check if move is optimal
+            if side == True and evaluate(newboard) < value: # min player which means wants lowest value
+                value = evaluate(newboard)
+                bestMove = move
+            elif side == False and evaluate(newboard) > value:
+                value = evaluate(newboard)
+                bestMove = move
+        moveList.append(bestMove)
+        return value,moveList,moveTree
+
+    for move in generateMoves(side,board,flags):
+        moveTree[encode(move[0],move[1],move[2])] = {}
+        newside, newboard, newflags = makeMove(side,board,move[0],move[1],flags,move[2])
+        minmax = minimax(newside,newboard,newflags,depth-1)
+        moveTree[encode(move[0],move[1],move[2])] = minmax[2]
+        moves = minmax[2]
+        if side == True and minmax[0] < value: # min player which means wants lowest value
+            value = minmax[0]
+            bestMove = move
+            moveList = minmax[1]
+        elif side == False and minmax[0] > value:
+            value = minmax[0]
+            bestMove = move
+            moveList = minmax[1]
+    moveList.insert(0,bestMove)
+
+    # print(depth)
+    # print(value)
+    # print(moveList)
+    # print(moveTree)
+    # print()
+
+    return value,moveList,moveTree
 
 def alphabeta(side, board, flags, depth, alpha=-math.inf, beta=math.inf):
     '''
@@ -72,7 +116,7 @@ def alphabeta(side, board, flags, depth, alpha=-math.inf, beta=math.inf):
       depth (int >=0): depth of the search (number of moves)
     '''
     raise NotImplementedError("you need to write this!")
-    
+
 
 def stochastic(side, board, flags, depth, breadth, chooser):
     '''
@@ -86,7 +130,7 @@ def stochastic(side, board, flags, depth, breadth, chooser):
       board (2-tuple of lists): current board layout, used by generateMoves and makeMove
       flags (list of flags): list of flags, used by generateMoves and makeMove
       depth (int >=0): depth of the search (number of moves)
-      breadth: number of different paths 
+      breadth: number of different paths
       chooser: a function similar to random.choice, but during autograding, might not be random.
     '''
     raise NotImplementedError("you need to write this!")
