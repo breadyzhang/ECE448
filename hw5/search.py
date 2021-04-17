@@ -115,7 +115,7 @@ def alphabeta(side, board, flags, depth, alpha=-math.inf, beta=math.inf):
       flags (list of flags): list of flags, used by generateMoves and makeMove
       depth (int >=0): depth of the search (number of moves)
     '''
-    raise NotImplementedError("you need to write this!")
+    
 
 
 def stochastic(side, board, flags, depth, breadth, chooser):
