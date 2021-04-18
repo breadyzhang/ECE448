@@ -93,13 +93,6 @@ def minimax(side, board, flags, depth):
             bestMove = move
             moveList = minmax[1]
     moveList.insert(0,bestMove)
-
-    # print(depth)
-    # print(value)
-    # print(moveList)
-    # print(moveTree)
-    # print()
-
     return value,moveList,moveTree
 
 def alphabeta(side, board, flags, depth, alpha=-math.inf, beta=math.inf):
@@ -115,51 +108,54 @@ def alphabeta(side, board, flags, depth, alpha=-math.inf, beta=math.inf):
       flags (list of flags): list of flags, used by generateMoves and makeMove
       depth (int >=0): depth of the search (number of moves)
     '''
-    value = math.inf if side == True else -math.inf
+    value = 0
     moveList = []
     moveTree = {}
-    bestMove = []
-    # create minimax tree move:(next move, heuristic)
-    # bubble up from leaves
-    # base case
-    if depth == 1:
-        # find all possible moves at board state
+    if depth == 0:
+        return evaluate(board),moveList,moveTree
+    if side == False:
+        value = -math.inf
         for move in generateMoves(side,board,flags):
-            moveTree[encode(move[0],move[1],move[2])] = {}
             newside,newboard,newflags = makeMove(side,board,move[0],move[1],flags,move[2])
-            # check if move is optimal
-            if side == True and evaluate(newboard) < value: # min player which means wants lowest value
-                value = evaluate(newboard)
-                bestMove = move
-            elif side == False and evaluate(newboard) > value:
-                value = evaluate(newboard)
-                bestMove = move
-        moveList.append(bestMove)
+            alphabet = alphabeta(newside,newboard,newflags,depth-1,alpha,beta)
+            moveTree[encode(move[0],move[1],move[2])] = alphabet[2]
+            if alphabet[0] > value:
+                value = alphabet[0]
+                alphabet[1].insert(0,move)
+                moveList = alphabet[1].copy()
+            alpha = max(alpha,value)
+            if alpha >= beta:
+                break
+
+        # print("depth: ",depth)
+        # print(value)
+        # print(moveList)
+        # # print(moveTree)
+        # print("list len: ",len(moveList))
         return value,moveList,moveTree
+    else:
+        value = math.inf
+        for move in generateMoves(side,board,flags):
+            newside,newboard,newflags = makeMove(side,board,move[0],move[1],flags,move[2])
+            alphabet = alphabeta(newside,newboard,newflags,depth-1,alpha,beta)
+            moveTree[encode(move[0],move[1],move[2])] = alphabet[2]
+            # print("alpha: ",alpha," beta: ",beta," min: ",value," move: ",move)
+            # print(alphabet[1])
+            if alphabet[0] < value:
+                value = alphabet[0]
+                alphabet[1].insert(0,move)
+                moveList = alphabet[1].copy()
+            beta = min(beta,value)
+            if beta <= alpha:
+                break
 
-    for move in generateMoves(side,board,flags):
-        moveTree[encode(move[0],move[1],move[2])] = {}
-        newside, newboard, newflags = makeMove(side,board,move[0],move[1],flags,move[2])
-        minmax = minimax(newside,newboard,newflags,depth-1)
-        moveTree[encode(move[0],move[1],move[2])] = minmax[2]
-        moves = minmax[2]
-        if side == True and minmax[0] < value: # min player which means wants lowest value
-            value = minmax[0]
-            bestMove = move
-            moveList = minmax[1]
-        elif side == False and minmax[0] > value:
-            value = minmax[0]
-            bestMove = move
-            moveList = minmax[1]
-    moveList.insert(0,bestMove)
-
-    # print(depth)
-    # print(value)
-    # print(moveList)
-    # print(moveTree)
-    # print()
-
-    return value,moveList,moveTree
+        # print("depth: ", depth)
+        print(value)
+        # print(moveTree)
+        # while len(moveList) >= depth+1:
+        #     del moveList[-1]
+        print(moveList)
+        return value,moveList,moveTree
 
 
 def stochastic(side, board, flags, depth, breadth, chooser):
