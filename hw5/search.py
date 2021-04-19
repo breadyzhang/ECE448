@@ -113,7 +113,7 @@ def alphabeta(side, board, flags, depth, alpha=-math.inf, beta=math.inf):
     moveTree = {}
     if depth == 0:
         return evaluate(board),moveList,moveTree
-    if side == False:
+    if side == False: # max/white
         value = -math.inf
         for move in generateMoves(side,board,flags):
             newside,newboard,newflags = makeMove(side,board,move[0],move[1],flags,move[2])
@@ -124,7 +124,7 @@ def alphabeta(side, board, flags, depth, alpha=-math.inf, beta=math.inf):
                 alphabet[1].insert(0,move)
                 moveList = alphabet[1].copy()
             alpha = max(alpha,value)
-            if alpha >= beta:
+            if alpha >= beta: # prune check
                 break
 
         # print("depth: ",depth)
@@ -133,28 +133,24 @@ def alphabeta(side, board, flags, depth, alpha=-math.inf, beta=math.inf):
         # # print(moveTree)
         # print("list len: ",len(moveList))
         return value,moveList,moveTree
-    else:
+    else: # min/black
         value = math.inf
         for move in generateMoves(side,board,flags):
             newside,newboard,newflags = makeMove(side,board,move[0],move[1],flags,move[2])
             alphabet = alphabeta(newside,newboard,newflags,depth-1,alpha,beta)
             moveTree[encode(move[0],move[1],move[2])] = alphabet[2]
-            # print("alpha: ",alpha," beta: ",beta," min: ",value," move: ",move)
-            # print(alphabet[1])
             if alphabet[0] < value:
                 value = alphabet[0]
                 alphabet[1].insert(0,move)
                 moveList = alphabet[1].copy()
             beta = min(beta,value)
-            if beta <= alpha:
+            if beta <= alpha: # prune check
                 break
 
         # print("depth: ", depth)
-        print(value)
+        # print(value)
         # print(moveTree)
-        # while len(moveList) >= depth+1:
-        #     del moveList[-1]
-        print(moveList)
+        # print(moveList)
         return value,moveList,moveTree
 
 
@@ -173,4 +169,77 @@ def stochastic(side, board, flags, depth, breadth, chooser):
       breadth: number of different paths
       chooser: a function similar to random.choice, but during autograding, might not be random.
     '''
-    raise NotImplementedError("you need to write this!")
+    value = 0
+    moveList = []
+    moveTree = {}
+    initialMoves = []
+    if side == True: # black moves
+        for move in generateMoves(side,board,flags):
+            newside,newboard,newflags = makeMove(side,board,move[0],move[1],flags,move[2])
+            moveTree[encode(move[0],move[1],move[2])] = {}
+            # print("\nmove: ",move,"\nvalue: ",evaluate(newboard))
+            # find all possible next moves
+            random = stochastic_helper(newside,newboard,newflags,depth-1,breadth,chooser,depth)
+            # print("next value: ",random[0])
+            moveTree[encode(move[0],move[1],move[2])] = random[2]
+            random[1].insert(0,move)
+            initialMoves.append((random[0],random[1]))
+        value,moveList = min(initialMoves)
+    else: # white moves
+        for move in generateMoves(side,board,flags):
+            newside,newboard,newflags = makeMove(side,board,move[0],move[1],flags,move[2])
+            moveTree[encode(move[0],move[1],move[2])] = {}
+            # find all possible next moves
+            random = stochastic_helper(newside,newboard,newflags,depth-1,breadth,chooser,depth)
+            moveTree[encode(move[0],move[1],move[2])] = random[2]
+            random[1].insert(0,move)
+            initialMoves.append((random[0],random[1]))
+        value,moveList = max(initialMoves)
+    # print(initialMoves)
+    # print(min(initialMoves))
+    # print(value)
+    # print(moveList)
+    # print(moveTree)
+    return value,moveList,moveTree
+
+def stochastic_helper(side,board,flags,level,breadth,chooser,depth):
+    value = 0
+    moveList = []
+    moveTree = {}
+    moves = []
+    initialMoves = []
+    # base case
+    if level == 0:
+        return evaluate(board),moveList,moveTree
+    # create list of possible moves for chooser
+    for move in generateMoves(side,board,flags):
+        moves.append(move)
+    if level == depth-1:
+        for i in range(breadth):
+            move = chooser(moves)
+            newside,newboard,newflags = makeMove(side,board,move[0],move[1],flags,move[2])
+            random = stochastic_helper(newside,newboard,newflags,level-1,breadth,chooser,depth)
+            moveTree[encode(move[0],move[1],move[2])] = random[2]
+            random[1].insert(0,move)
+            initialMoves.append((random[0],random[1]))
+            # value = random[0] + evaluate(board)
+            # moveList = random[1].copy()
+            # moveList.insert(0,move)
+        # print(initialMoves)
+        for next in initialMoves:
+            value += next[0]
+        value = value/breadth
+        if side == True:
+            moveList = min(initialMoves)[1]
+        else:
+            moveList = max(initialMoves)[1]
+        # print(initialMoves)
+    else:
+        move = chooser(moves)
+        newside,newboard,newflags = makeMove(side,board,move[0],move[1],flags,move[2])
+        random = stochastic_helper(newside,newboard,newflags,level-1,breadth,chooser,depth)
+        moveTree[encode(move[0],move[1],move[2])] = random[2]
+        value = random[0]
+        moveList = random[1].copy()
+        moveList.insert(0,move)
+    return value,moveList,moveTree
