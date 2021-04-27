@@ -33,14 +33,14 @@ def rollout(env: gym.Env, policies: policies.QPolicy, episodes: int, epsilon: fl
     Simulates trajectories for the given number of episodes. Input policy is used to sample actions at each time step
 
     :param env: the gym environment
-    :param policies: The policy used to sample actions (Tabular/DQN) 
+    :param policies: The policy used to sample actions (Tabular/DQN)
     :param episodes: Number of episodes to be simulated
     :param epsilon: The exploration parameter for epsilon-greedy policy
     :param gamma: Discount factor
     :param render: If True, render the environment
-    
+
     :return replay: Collection of (state, action, reward, next_state, done) at each timestep of all simulated episodes
-    :return scores: Collection of total reward for each simulated episode  
+    :return scores: Collection of total reward for each simulated episode
     """
     replay = []
     scores = []
@@ -55,7 +55,7 @@ def rollout(env: gym.Env, policies: policies.QPolicy, episodes: int, epsilon: fl
             ### TODO: Your code starts here:
             pi = policies(state, epsilon)
             # How do you select the action given pi. Hint: use np.random.choice
-            action = "?"
+            action = np.random.choice([0,1])
             ### Your code ends here.
             next_state, reward, done, _ = env.step(action)
             score += reward
@@ -92,6 +92,8 @@ def qlearn(env, policy, args):
     all_scores = []
     for _ in pbar:
         replay, scores = rollout(env, policy, 1, args.epsilon, render=False)
+        # print(replay)
+        # print(scores)
         all_scores.extend(scores)
         replaymem.extend(replay)
         traindata = random.sample(replaymem, min(args.trainsize, len(replaymem)))
