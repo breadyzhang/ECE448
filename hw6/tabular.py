@@ -58,6 +58,8 @@ class TabQPolicy(QPolicy):
             discrete = self.discretize(state)
             # print(discrete)
             qval.append(discrete)
+        np.append(self.model,qval)
+        print(self.model)
         return qval
 
     def td_step(self, state, action, reward, next_state, done):
@@ -90,7 +92,7 @@ if __name__ == '__main__':
 
     statesize = env.observation_space.shape[0]
     actionsize = env.action_space.n
-    policy = TabQPolicy(env, buckets=(1, 1, 1, 1), actionsize=actionsize, lr=args.lr, gamma=args.gamma)
+    policy = TabQPolicy(env, buckets=(97, 48, 49, 24), actionsize=actionsize, lr=args.lr, gamma=args.gamma)
     utils.qlearn(env, policy, args)
 
     torch.save(policy.model, 'tabular.npy')
