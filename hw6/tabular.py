@@ -24,7 +24,7 @@ class TabQPolicy(QPolicy):
         """
         super().__init__(len(buckets), actionsize, lr, gamma)
         self.buckets = buckets
-        if model == None:
+        if len(model) == 0:
             self.model = np.zeros(self.buckets + (actionsize,))
         else:
             self.model = model
@@ -52,15 +52,19 @@ class TabQPolicy(QPolicy):
 
         @return qvals: the q values for the state for each action.
         """
-        qval = []
+        qvals = []
+        # counter = 0
         for state in states:
-            # print(state)
+            # print(counter)
+            # counter += 1
             discrete = self.discretize(state)
-            # print(discrete)
-            qval.append(discrete)
-        np.append(self.model,qval)
-        print(self.model)
-        return qval
+            # print("discretize: ",discrete)
+            qval = self.model[discrete]
+            # print(qval)
+            qvals.append(qval)
+
+        # print(qvals)
+        return qvals
 
     def td_step(self, state, action, reward, next_state, done):
         """
@@ -77,6 +81,20 @@ class TabQPolicy(QPolicy):
         # Q(s,a)←Q(s,a)+α⋅(target−Q(s,a))
         # target = r + gamma max Q(s',a')
         # return (Q(s,a)-target)^2
+        state = self.discretize(state)
+        # print("current qval: ", self.model[state][action])
+        original = self.model[state][action]
+        alpha = self.lr
+        if done == True:
+            target = reward
+        else:
+            target = reward + self.gamma * max(self.model[state][0], self.model[state][1])
+        error = (target - original)**2
+        updated = self.model[state][action] + alpha * (target - original)
+        self.model[state][action] = updated
+        # print("new qval: ", self.model[state][action])
+        return error
+
 
     def save(self, outpath):
         """
