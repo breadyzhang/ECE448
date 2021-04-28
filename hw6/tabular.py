@@ -80,9 +80,10 @@ class TabQPolicy(QPolicy):
         if done == True:
             target = reward
         else:
-            target = reward + self.gamma*np.argmax(self.model[next])
+            target = reward + self.gamma*np.max(self.model[next])
         error = (target-self.model[curr][action])**2
         self.model[curr][action] = self.model[curr][action] + self.lr*(target-self.model[curr][action])
+        # print(self.model)
         return error
 
     def save(self, outpath):
